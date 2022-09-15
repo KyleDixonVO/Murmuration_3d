@@ -9,7 +9,7 @@ public class Focus : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        timerFinished = true;
+        timerFinished = false;
     }
 
     // Update is called once per frame
@@ -20,7 +20,7 @@ public class Focus : MonoBehaviour
             transform.position = new Vector3(Random.Range(-10, 10), Random.Range(-10, 10), Random.Range(-10, 10));
             timerFinished = false;
         }
-        else
+        else if (timer <= 0)
         {
             timer = 10;
         }
