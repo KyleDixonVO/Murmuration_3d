@@ -4,73 +4,107 @@ using UnityEngine;
 
 public class Agent : MonoBehaviour
 {
-
+    bool shouldTurn = false;
+    private AgentParent parent;
+    public static float avoidanceDistance = 3.0f;
     public float maxSpeed = 5.0f;
-    public float speedCap = 5.0f;
-    public float maxAccleration = 20.0f;
+    public float speed = 1.0f;
+    float rotationSpeed = 4.0f;
 
-    public float yRotation;
-    public float rotation;
+    Vector3 averageHeading;
+    Vector3 averagePosition;
 
-    public float yRotationMin = 0.0f;
-    public float yRotationMax = 360.0f;
-
-    public float maxSingleFrameRotation = 30.0f;
-    public float maxSingleFrameAngularAcceleration = 30.0f;
-
-
-
-
-    public Vector3 velocity;
-    public Steering steering;
+    float neighborDistance;
 
     // Start is called before the first frame update
     void Start()
     {
-        velocity = Vector3.zero;
-        steering = new Steering();
+        parent = GameObject.Find("Lead").GetComponent<AgentParent>();
+        speed = Random.Range(1, maxSpeed);
     }
 
     // Update is called once per frame
-    public virtual void Update()
+    void Update()
     {
-        Vector3 acceleration = velocity * Time.deltaTime;
-
-        if (yRotation < yRotationMin)
+        if (Vector3.Distance(transform.position, Vector3.zero) >= parent.spawnMax)
         {
-            yRotation = yRotationMax;
+            shouldTurn = true;
         }
-        else if (yRotation > yRotationMax)
+        else
         {
-            yRotation = yRotationMin;
+            shouldTurn = false;
         }
 
-        transform.Translate(acceleration, Space.World);
-        transform.Rotate(Vector3.up, yRotation);
-    }
 
-    public virtual void LateUpdate()
-    {
-        velocity += steering.linear * Time.deltaTime;
-        rotation += steering.angular * Time.deltaTime;
-
-        if (velocity.magnitude > maxSpeed)
+        if (shouldTurn)
         {
-            velocity.Normalize();
-            velocity = velocity * maxSpeed;
+            Vector3 direction = Vector3.zero - transform.position;
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), rotationSpeed * Time.deltaTime);
+            speed = Random.Range(1, maxSpeed);
+        }
+        else
+        {
+            if (Random.Range(0, 3) < 1)
+            {
+                ApplyRules();
+            }
         }
 
-        steering = new Steering();
+
+        transform.Translate(0, 0, Time.deltaTime * speed);
     }
 
-    public void UpdateSteering(Steering seekSteering, Steering cohSteering, Steering sepSteering, float seekWeight, float sepWeight, float cohWeight)
+    void ApplyRules()
     {
-        this.steering.linear += (((seekWeight * seekSteering.linear) + (sepWeight * sepSteering.linear) + (cohWeight * cohSteering.linear)) / 3);
-        this.steering.angular += (((seekWeight * seekSteering.angular) + (sepWeight * sepSteering.angular) + (cohWeight * cohSteering.angular)) / 3);
+        List<GameObject> agents;
+        agents = parent.agents;
+
+        Vector3 agentCenter = Vector3.zero;
+        Vector3 avoidance = Vector3.zero;
+        float flockSpeed = 1.0f;
+
+        Vector3 target = parent.targetPos;
+
+        float dist;
+
+        int numberOfNeighbors = 0;
+
+        foreach (GameObject agent in agents)
+        {
+            if (agent != this.gameObject)
+            {
+                dist = Vector3.Distance(agent.transform.position, this.transform.position);
+                if (dist <= neighborDistance)
+                {
+                    agentCenter += agent.transform.position;
+                    numberOfNeighbors++;
+
+                    if (dist < avoidanceDistance)
+                    {
+                        avoidance += (this.transform.position - agent.transform.position);
+                    }
+
+                    flockSpeed += agent.GetComponent<Agent>().speed;
+                }
+            }
+        }
+
+        if (numberOfNeighbors > 0)
+        {
+            agentCenter = agentCenter / numberOfNeighbors + (target - this.transform.position);
+            speed = flockSpeed / numberOfNeighbors;
+
+            Vector3 direction = (agentCenter + avoidance) - transform.position;
+            if (direction != Vector3.zero)
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), rotationSpeed * Time.deltaTime);
+            }
+        }
     }
 
-    public void ResetSpeed()
+    private void OnCollisionEnter(Collision collision)
     {
-        maxSpeed = speedCap;
+        this.gameObject.GetComponent<Renderer>().material.color = Color.yellow;
     }
+
 }

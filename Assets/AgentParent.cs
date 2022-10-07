@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class AgentParent : MonoBehaviour
 {
-    public GameObject target;
     public GameObject agentPrefab;
     public List<GameObject> agents;
-    public int numberOfAgents = 10;
+    public int numberOfAgents = 50;
+    public float spawnMin = -20;
+    public float spawnMax = 20;
+    public Vector3 targetPos;
     // Start is called before the first frame update
     void Start()
     {
@@ -15,9 +17,8 @@ public class AgentParent : MonoBehaviour
         
         for (int i = 0; i < numberOfAgents; i++)
         {
-            Vector3 spawnPoint = new Vector3(Random.Range(-20, 20), 0, Random.Range(-20, 20));
-            GameObject instance = Instantiate(agentPrefab, transform.position + spawnPoint, transform.rotation);
-            instance.GetComponent<AgentBrain>().target = target;
+            Vector3 spawnPoint = new Vector3(Random.Range(spawnMin, spawnMax), Random.Range(spawnMin, spawnMax), Random.Range(spawnMin, spawnMax));
+            GameObject instance = Instantiate(agentPrefab, spawnPoint, Quaternion.identity);
             agents.Add(instance);
         }
         
@@ -26,6 +27,9 @@ public class AgentParent : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        this.transform.position += (target.transform.position - transform.position).normalized * Time.deltaTime * 5.0f;
+        if (Random.Range(0, 2000) < 50)
+        {
+            targetPos = new Vector3(Random.Range(spawnMin, spawnMax), Random.Range(spawnMin, spawnMax), Random.Range(spawnMin, spawnMax));
+        }
     }
 }
