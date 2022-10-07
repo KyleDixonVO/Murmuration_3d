@@ -11,9 +11,6 @@ public class Agent : MonoBehaviour
     public float speed = 1.0f;
     float rotationSpeed = 4.0f;
 
-    Vector3 averageHeading;
-    Vector3 averagePosition;
-
     float neighborDistance;
 
     // Start is called before the first frame update
@@ -44,17 +41,14 @@ public class Agent : MonoBehaviour
         }
         else
         {
-            if (Random.Range(0, 3) < 1)
-            {
-                ApplyRules();
-            }
+                Flock();
         }
 
 
         transform.Translate(0, 0, Time.deltaTime * speed);
     }
 
-    void ApplyRules()
+    void Flock()
     {
         List<GameObject> agents;
         agents = parent.agents;
