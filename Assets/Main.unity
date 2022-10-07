@@ -314,7 +314,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agentPrefab: {fileID: 4058315617525798326, guid: 3edb788627a347a4e9c89c955faaab20, type: 3}
   agents: []
-  numberOfAgents: 100
+  numberOfAgents: 200
   spawnMin: -20
   spawnMax: 20
   targetPos: {x: 0, y: 0, z: 0}

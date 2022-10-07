@@ -41,7 +41,10 @@ public class Agent : MonoBehaviour
         }
         else
         {
+            if (Random.Range(0, 5) < 1)
+            {
                 Flock();
+            }
         }
 
 
